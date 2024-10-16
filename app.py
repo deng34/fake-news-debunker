@@ -118,7 +118,7 @@ def generate_suggestions(title, text, keywords):
                 {"role": "system", "content": "You are a helpful assistant specialized in fact-checking."},
                 {"role": "user", "content": prompt}  # Pass the constructed prompt as user input
             ],
-            max_tokens=600,  # Set the maximum number of tokens
+            max_tokens=256,  # Set the maximum number of tokens
             temperature=0.7  # Control the diversity of the generated text
         )
         
