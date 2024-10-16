@@ -113,12 +113,12 @@ def generate_suggestions(title, text, keywords):
     try:
         # Use OpenAI GPT-4 API to generate suggestions using chat completion
         response = client.chat.completions.create(
-            model="gpt-4",  # Use the GPT-4 model
+            model="gpt-4o-2024-08-06",  # Use the GPT-4 model
             messages=[
                 {"role": "system", "content": "You are a helpful assistant specialized in fact-checking."},
                 {"role": "user", "content": prompt}  # Pass the constructed prompt as user input
             ],
-            max_tokens=1000,  # Set the maximum number of tokens
+            max_tokens=600,  # Set the maximum number of tokens
             temperature=0.7  # Control the diversity of the generated text
         )
         
@@ -166,7 +166,7 @@ iface = gr.Interface(
         gr.Textbox(label="Text", lines=10)  # Textbox for the news content
     ],
     outputs="markdown",  # Output format is markdown
-    title="Fake News Detector with Suggestions",  # Title of the Gradio app
+    title="Fake News Debunker",  # Title of the Gradio app
     description="Enter the news title and content to check if it's fake. If fake, get suggestions on how to know more about the facts.",
     # Description of the app
 )
