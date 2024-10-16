@@ -17,11 +17,13 @@ tokenizer = AutoTokenizer.from_pretrained("hamzab/roberta-fake-news-classificati
 model = AutoModelForSequenceClassification.from_pretrained("hamzab/roberta-fake-news-classification")
 
 # Load spaCy model for keyword extraction
+import spacy.cli
+
 try:
     nlp = spacy.load('en_core_web_sm')
-except:
+except OSError:
     # If spaCy model is not available, download it
-    subprocess.run([sys.executable, "-m", "spacy", "download", "en_core_web_sm"])
+    spacy.cli.download("en_core_web_sm")
     nlp = spacy.load('en_core_web_sm')
 
 
