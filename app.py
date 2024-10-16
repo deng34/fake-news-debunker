@@ -10,7 +10,7 @@ import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 # Set OpenAI API key from environment variables
-openai.api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Load the tokenizer and the pretrained classification model
 tokenizer = AutoTokenizer.from_pretrained("hamzab/roberta-fake-news-classification")
@@ -109,19 +109,22 @@ def generate_suggestions(title, text, keywords):
     Title: {title}
     Text: {text}
     """
-    
+
     try:
-        # Call OpenAI API to generate suggestions using the GPT-4 model
-        response = openai.Completion.create(
-            engine="gpt-4-2024-08-06",  # The GPT-4 model being used
-            prompt=prompt,  # The constructed prompt
-            max_tokens=1000,  # Maximum number of tokens for the response
-            temperature=0.7,  # Controls randomness in the generated text
+        # Call OpenAI's chat completion method using GPT-4 model
+        response = client.chat.completions.create(
+            model="gpt-4",  # Using the GPT-4 model
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant specialized in fact-checking."},  # System role definition
+                {"role": "user", "content": prompt}  # User input (the constructed prompt)
+            ],
+            max_tokens=4000,  # Set the maximum token limit to 4000
+            temperature=0.7,  # Controls the randomness in the generated text
         )
         
         # Extract and clean the suggestions from the API response
-        suggestions = response.choices[0].text.strip()
-    
+        suggestions = response.choices[0].message["content"].strip()
+
     except Exception as e:
         # If there's an error, set a default error message and print the exception details for debugging
         suggestions = "Unable to generate suggestions at this time."
