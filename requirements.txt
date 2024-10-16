@@ -1,0 +1,8 @@
+transformers
+torch
+gradio
+openai
+spacy
+en-core-web-sm
+pandas
+scikit-learn
