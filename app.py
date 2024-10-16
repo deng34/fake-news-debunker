@@ -1,7 +1,7 @@
 import gradio as gr
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
-import openai
+from openai import OpenAI
 import os
 import spacy
 import subprocess
