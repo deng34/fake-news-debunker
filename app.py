@@ -109,25 +109,25 @@ def generate_suggestions(title, text, keywords):
     Title: {title}
     Text: {text}
     """
-
+    
     try:
-        # Call OpenAI's chat completion method using GPT-4 model
+        # Use OpenAI GPT-4 API to generate suggestions using chat completion
         response = client.chat.completions.create(
-            model="gpt-4",  # Using the GPT-4 model
+            model="gpt-4",  # Use the GPT-4 model
             messages=[
-                {"role": "system", "content": "You are a helpful assistant specialized in fact-checking."},  # System role definition
-                {"role": "user", "content": prompt}  # User input (the constructed prompt)
+                {"role": "system", "content": "You are a helpful assistant specialized in fact-checking."},
+                {"role": "user", "content": prompt}  # Pass the constructed prompt as user input
             ],
-            max_tokens=4000,  # Set the maximum token limit to 4000
-            temperature=0.7,  # Controls the randomness in the generated text
+            max_tokens=1000,  # Set the maximum number of tokens
+            temperature=0.7  # Control the diversity of the generated text
         )
         
-        # Extract and clean the suggestions from the API response
-        suggestions = response.choices[0].message["content"].strip()
-
+        # Correctly access the generated suggestions from the API response
+        suggestions = response.choices[0].message.content.strip()
+    
     except Exception as e:
         # If there's an error, set a default error message and print the exception details for debugging
-        suggestions = "Unable to generate suggestions at this time."
+        suggestions = f"Unable to generate suggestions at this time. Error: {str(e)}"
         print(f"Error generating suggestions: {e}")  # Debug: print the error details to the console
 
     return suggestions
