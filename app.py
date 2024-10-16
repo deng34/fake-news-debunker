@@ -99,28 +99,34 @@ def predict(title, text):
     return label, keywords
 
 
-# Function to generate fact-checking suggestions using OpenAI's GPT model
 def generate_suggestions(title, text, keywords):
     # Construct the prompt for GPT based on the title, text, and keywords
     prompt = f"""
-You are a specialist in fact-checking. Based on the title, text, and keywords of the fake news, please suggest some ways to know more about the facts. Please give recommendations that are easy to accept.
+    You are a specialist in fact-checking. Based on the title, text, and keywords of the fake news, 
+    please suggest some ways to know more about the facts. Please give recommendations that are easy to accept.
 
-Keywords: {', '.join(keywords)}
-Title: {title}
-Text: {text}
-"""
+    Keywords: {', '.join(keywords)}
+    Title: {title}
+    Text: {text}
+    """
+    
     try:
-        # Call the OpenAI API to generate suggestions
+        # Call OpenAI API to generate suggestions using the GPT-4 model
         response = openai.Completion.create(
-            engine="gpt-4-2024-08-06",
-            prompt=prompt,
-            max_tokens=1000,
-            temperature=0.7,
+            engine="gpt-4-2024-08-06",  # The GPT-4 model being used
+            prompt=prompt,  # The constructed prompt
+            max_tokens=1000,  # Maximum number of tokens for the response
+            temperature=0.7,  # Controls randomness in the generated text
         )
+        
+        # Extract and clean the suggestions from the API response
         suggestions = response.choices[0].text.strip()
+    
     except Exception as e:
+        # If there's an error, set a default error message and print the exception details for debugging
         suggestions = "Unable to generate suggestions at this time."
-        print(f"Error generating suggestions: {e}")
+        print(f"Error generating suggestions: {e}")  # Debug: print the error details to the console
+
     return suggestions
 
 
