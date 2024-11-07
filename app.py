@@ -4,8 +4,6 @@ import torch
 from openai import OpenAI
 import os
 import spacy
-import subprocess
-import sys
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 
@@ -26,7 +24,6 @@ except OSError:
     spacy.cli.download("en_core_web_sm")
     nlp = spacy.load('en_core_web_sm')
 
-
 # Load the WELFake dataset and extract top 500 TF-IDF keywords
 def load_data():
     # Load WELFake dataset from CSV file
@@ -41,10 +38,8 @@ def load_data():
     top_keywords = vectorizer.get_feature_names_out()
     return top_keywords
 
-
 # Load top TF-IDF keywords from the WELFake dataset
 top_keywords = load_data()
-
 
 # Function to extract keywords using spaCy and matching them with TF-IDF keywords
 def extract_keywords(text):
@@ -60,7 +55,6 @@ def extract_keywords(text):
     all_keywords = list(set(spacy_keywords + tfidf_keywords))
 
     return all_keywords
-
 
 # Function to predict whether the news is real or fake using the classification model
 def predict(title, text):
@@ -84,8 +78,8 @@ def predict(title, text):
     with torch.no_grad():
         outputs = model(**inputs)
         logits = outputs.logits
-        probabilities = torch.softmax(logits, dim=1)
-        prediction_value = torch.argmax(probabilities, dim=1).item()
+        probabilities = torch.softmax(logits, dim=1).squeeze()
+        prediction_value = torch.argmax(probabilities).item()
 
     # Map the model's output to 'Fake' or 'Real'
     if prediction_value == 0:
@@ -93,18 +87,44 @@ def predict(title, text):
     else:
         label = 'Real'
 
+    # Get the probability for each class
+    fake_prob = probabilities[0].item() * 100
+    real_prob = probabilities[1].item() * 100
+
     # Extract keywords from the input text
     keywords = extract_keywords(text)
 
-    return label, keywords
+    return label, fake_prob, real_prob, keywords
 
+# Main function that predicts and explains the results
+def predict_and_explain(title, text):
+    # Predict whether the news is real or fake, and extract keywords
+    label, fake_prob, real_prob, keywords = predict(title, text)
 
+    # If the news is classified as fake, generate suggestions
+    if label == 'Fake':
+        suggestions = generate_suggestions(title, text, keywords)
+        return f"""
+**Prediction**: Fake News
+**Probability**: {fake_prob:.2f}% Fake, {real_prob:.2f}% Real
+**Keywords**: {', '.join(keywords)}
+**Suggestions**:
+{suggestions}
+"""
+    else:
+        # If the news is real, just show the prediction and keywords
+        return f"""
+**Prediction**: Real News
+**Probability**: {real_prob:.2f}% Real, {fake_prob:.2f}% Fake
+**Keywords**: {', '.join(keywords)}
+"""
+
+# Function to generate suggestions for fact-checking
 def generate_suggestions(title, text, keywords):
     # Construct the prompt for GPT based on the title, text, and keywords
     prompt = f"""
     You are a specialist in fact-checking. Based on the title, text, and keywords of the fake news, 
     please suggest some ways to know more about the facts. Please give recommendations that are easy to accept.
-
     Keywords: {', '.join(keywords)}
     Title: {title}
     Text: {text}
@@ -131,32 +151,6 @@ def generate_suggestions(title, text, keywords):
         print(f"Error generating suggestions: {e}")  # Debug: print the error details to the console
 
     return suggestions
-
-
-# Main function that predicts and explains the results
-def predict_and_explain(title, text):
-    # Predict whether the news is real or fake, and extract keywords
-    label, keywords = predict(title, text)
-
-    # If the news is classified as fake, generate suggestions
-    if label == 'Fake':
-        suggestions = generate_suggestions(title, text, keywords)
-        return f"""
-**Prediction**: Fake News
-
-**Keywords**: {', '.join(keywords)}
-
-**Suggestions**:
-{suggestions}
-"""
-    else:
-        # If the news is real, just show the prediction and keywords
-        return f"""
-**Prediction**: Real News
-
-**Keywords**: {', '.join(keywords)}
-"""
-
 
 # Gradio interface setup
 iface = gr.Interface(
