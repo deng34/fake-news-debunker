@@ -106,16 +106,22 @@ def predict_and_explain(title, text):
         suggestions = generate_suggestions(title, text, keywords)
         return f"""
 **Prediction**: Fake News
+
 **Probability**: {fake_prob:.2f}% Fake, {real_prob:.2f}% Real
+
 **Keywords**: {', '.join(keywords)}
+
 **Suggestions**:
+
 {suggestions}
 """
     else:
         # If the news is real, just show the prediction and keywords
         return f"""
 **Prediction**: Real News
+
 **Probability**: {real_prob:.2f}% Real, {fake_prob:.2f}% Fake
+
 **Keywords**: {', '.join(keywords)}
 """
 
@@ -125,8 +131,11 @@ def generate_suggestions(title, text, keywords):
     prompt = f"""
     You are a specialist in fact-checking. Based on the title, text, and keywords of the fake news, 
     please suggest some ways to know more about the facts. Please give recommendations that are easy to accept.
+
     Keywords: {', '.join(keywords)}
+
     Title: {title}
+
     Text: {text}
     """
     
