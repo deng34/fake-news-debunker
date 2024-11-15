@@ -101,22 +101,43 @@ def predict_and_explain(title, text):
     # Predict whether the news is real or fake, and extract keywords
     label, fake_prob, real_prob, keywords = predict(title, text)
 
+    # Format keywords with line breaks after every 5 keywords
+    formatted_keywords = []
+    for i in range(0, len(keywords), 5):
+        formatted_keywords.append(', '.join(keywords[i:i+5]))
+    keywords_text = ',\n'.join(formatted_keywords)
+
     # If the news is classified as fake, generate suggestions
     if label == 'Fake':
         suggestions = generate_suggestions(title, text, keywords)
         return f"""
+## 🔍 Analysis Results
+
 **Prediction**: Fake News
-**Probability**: {fake_prob:.2f}% Fake, {real_prob:.2f}% Real
-**Keywords**: {', '.join(keywords)}
-**Suggestions**:
+
+**Probability**:
+- Fake: {fake_prob:.2f}%
+- Real: {real_prob:.2f}%
+
+**Keywords**:
+{keywords_text}
+
+**Fact-Checking Suggestions**:
 {suggestions}
 """
     else:
         # If the news is real, just show the prediction and keywords
         return f"""
+## 🔍 Analysis Results
+
 **Prediction**: Real News
-**Probability**: {real_prob:.2f}% Real, {fake_prob:.2f}% Fake
-**Keywords**: {', '.join(keywords)}
+
+**Probability**:
+- Real: {real_prob:.2f}%
+- Fake: {fake_prob:.2f}%
+
+**Keywords**:
+{keywords_text}
 """
 
 # Function to generate suggestions for fact-checking
