@@ -106,22 +106,16 @@ def predict_and_explain(title, text):
         suggestions = generate_suggestions(title, text, keywords)
         return f"""
 **Prediction**: Fake News
-
 **Probability**: {fake_prob:.2f}% Fake, {real_prob:.2f}% Real
-
 **Keywords**: {', '.join(keywords)}
-
 **Suggestions**:
-
 {suggestions}
 """
     else:
         # If the news is real, just show the prediction and keywords
         return f"""
 **Prediction**: Real News
-
 **Probability**: {real_prob:.2f}% Real, {fake_prob:.2f}% Fake
-
 **Keywords**: {', '.join(keywords)}
 """
 
@@ -131,18 +125,15 @@ def generate_suggestions(title, text, keywords):
     prompt = f"""
     You are a specialist in fact-checking. Based on the title, text, and keywords of the fake news, 
     please suggest some ways to know more about the facts. Please give recommendations that are easy to accept.
-
     Keywords: {', '.join(keywords)}
-
     Title: {title}
-
     Text: {text}
     """
     
     try:
         # Use OpenAI GPT-4 API to generate suggestions using chat completion
         response = client.chat.completions.create(
-            model="gpt-4o-2024-08-06",  # Use the GPT-4 model
+            model="gpt-4",  # Use the GPT-4 model
             messages=[
                 {"role": "system", "content": "You are a helpful assistant specialized in fact-checking."},
                 {"role": "user", "content": prompt}  # Pass the constructed prompt as user input
@@ -161,18 +152,110 @@ def generate_suggestions(title, text, keywords):
 
     return suggestions
 
-# Gradio interface setup
-iface = gr.Interface(
-    fn=predict_and_explain,  # The function to handle user input and return predictions
-    inputs=[
-        gr.Textbox(label="Title"),  # Textbox for the news title
-        gr.Textbox(label="Text", lines=10)  # Textbox for the news content
-    ],
-    outputs="markdown",  # Output format is markdown
-    title="Fake News Debunker",  # Title of the Gradio app
-    description="Enter the news title and content to check if it's fake. If fake, get suggestions on how to know more about the facts.",
-    # Description of the app
+# Custom CSS styles
+custom_css = """
+.gr-interface {
+    background-color: #f8f9fa;
+}
+.gr-form {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+.gr-input {
+    border: 2px solid #e9ecef;
+    border-radius: 0.5rem;
+    transition: border-color 0.3s ease;
+}
+.gr-input:focus {
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+.gr-button {
+    background-color: #4a90e2;
+    border: none;
+    border-radius: 0.5rem;
+    color: white;
+    transition: background-color 0.3s ease;
+}
+.gr-button:hover {
+    background-color: #357abd;
+}
+.footer {
+    text-align: center;
+    margin-top: 2rem;
+    color: #6c757d;
+}
+"""
+
+# Create custom theme
+theme = gr.themes.Soft(
+    primary_hue="blue",
+    secondary_hue="gray",
+    neutral_hue="gray",
+    spacing_size=gr.themes.sizes.spacing_lg,
+    radius_size=gr.themes.sizes.radius_lg,
+    font=[gr.themes.GoogleFont("Inter"), "system-ui", "sans-serif"]
+).set(
+    body_background_fill="#f8f9fa",
+    body_background_fill_dark="#1a1b1e",
+    button_primary_background_fill="#4a90e2",
+    button_primary_background_fill_hover="#357abd",
+    button_primary_text_color="white",
+    input_background_fill="white",
+    input_border_width="2px",
+    input_shadow="0 2px 4px rgba(0,0,0,0.05)",
 )
 
-# Launch the Gradio app
+# Gradio interface setup
+with gr.Blocks(theme=theme, css=custom_css) as iface:
+    gr.Markdown(
+        """
+        # 🔍 Fake News Detection & Analysis System
+        
+        ### Your Tool for Identifying Misinformation and Finding Facts
+        
+        Enter a news article's title and content below to:
+        - Analyze the authenticity of the news
+        - Extract key topics and themes
+        - Get fact-checking recommendations
+        """
+    )
+    
+    with gr.Row():
+        with gr.Column():
+            title_input = gr.Textbox(
+                label="📰 News Title",
+                placeholder="Enter the news title here...",
+                lines=1
+            )
+            text_input = gr.Textbox(
+                label="📝 News Content",
+                placeholder="Enter the news content here...",
+                lines=10
+            )
+            submit_btn = gr.Button("Analyze Now 🔍", variant="primary")
+        
+    output = gr.Markdown(label="Analysis Results")
+    
+    # Set submit button action
+    submit_btn.click(
+        fn=predict_and_explain,
+        inputs=[title_input, text_input],
+        outputs=output,
+    )
+    
+    # Add footer
+    gr.Markdown(
+        """
+        <div class="footer">
+        💡 Note: This system uses advanced AI models for analysis. Results should be used as a reference. 
+        Always maintain critical thinking and independent judgment.
+        </div>
+        """,
+        visible=True
+    )
+
+# Launch the application
 iface.launch()
